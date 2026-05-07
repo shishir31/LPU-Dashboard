@@ -17,8 +17,10 @@ const app = express();
 // --------------- Middleware ---------------
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests from any localhost port (Vite may pick different ports)
-    if (!origin || origin.match(/^http:\/\/localhost:\d+$/)) {
+    // Allow requests from FRONTEND_URL or any localhost port
+    const allowedOrigin = process.env.FRONTEND_URL;
+    
+    if (!origin || origin.match(/^http:\/\/localhost:\d+$/) || (allowedOrigin && origin === allowedOrigin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
