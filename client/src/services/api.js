@@ -30,9 +30,7 @@ export const studentService = {
 
   // Upload PDF for verification
   uploadPDF: async (formData) => {
-    const response = await api.post('/upload-pdf', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await api.post('/upload-pdf', formData);
     return response.data;
   },
 
