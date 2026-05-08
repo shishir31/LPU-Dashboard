@@ -41,6 +41,7 @@ const Dashboard = () => {
     school: r.school,
     eventCategory: r.eventCategory,
     status: r.status,
+    dob: r.dob,
   }))
 
   const handleDeleteRegistration = async (id) => {
@@ -70,13 +71,14 @@ const Dashboard = () => {
         doc.setFontSize(11);
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
         
-        const tableColumn = ["Reg ID", "Name", "Class", "School", "Category", "Status"];
+        const tableColumn = ["Reg ID", "Name", "DOB", "Class", "School", "Category", "Status"];
         const tableRows = [];
 
         res.data.forEach(student => {
           const studentData = [
             student.registrationId,
             student.name,
+            student.dob || '-',
             `${student.class || '-'}${student.section ? `-${student.section}` : ''}`,
             student.school || '-',
             student.eventCategory || '-',

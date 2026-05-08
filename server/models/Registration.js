@@ -29,6 +29,11 @@ const registrationSchema = new mongoose.Schema(
       type: String,
       enum: ['Male', 'Female'],
     },
+    dob: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     eventCategory: {
       type: String,
       enum: ['Singles', 'Doubles', 'Mixed Doubles'],

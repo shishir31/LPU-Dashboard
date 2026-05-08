@@ -12,6 +12,7 @@ const RegistrationForm = () => {
 
   // Manual fields (only used when student not found in DB)
   const [manualName, setManualName] = useState('')
+  const [manualDob, setManualDob] = useState('')
 
   // Auto-fetch student data when Registration ID is entered
   const handleFetch = async () => {
@@ -50,12 +51,14 @@ const RegistrationForm = () => {
         registrationId,
         name: fetchedData?.name || manualName,
         school: fetchedData?.school || '',
+        dob: fetchedData?.dob || manualDob,
       })
       if (res.success) {
         setMessage({ type: 'success', text: res.message || 'Player registered successfully!' })
         setRegistrationId('')
         setFetchedData(null)
         setManualName('')
+        setManualDob('')
       }
     } catch (error) {
       const msg = error.response?.data?.message || 'Registration failed'
@@ -186,17 +189,33 @@ const RegistrationForm = () => {
 
         {/* Manual name input (only when student not found) */}
         {!fetchedData && registrationId && (
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Student Name (manual entry)</label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input 
-                type="text" 
-                className="input-field pl-12"
-                placeholder="Enter student name manually"
-                value={manualName}
-                onChange={(e) => setManualName(e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Student Name (manual entry)</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  className="input-field pl-12"
+                  placeholder="Enter student name manually"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Date of Birth (optional)</label>
+              <div className="relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  className="input-field pl-12"
+                  placeholder="e.g. 12/05/2008"
+                  value={manualDob}
+                  onChange={(e) => setManualDob(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         )}

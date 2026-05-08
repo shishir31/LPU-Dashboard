@@ -26,6 +26,7 @@ const StudentTable = ({ students, onDelete }) => {
             <tr className="bg-slate-50/50 border-b border-slate-100">
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reg. ID</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Student Name</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">DOB</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">School</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
@@ -58,6 +59,9 @@ const StudentTable = ({ students, onDelete }) => {
                         <span className="text-xs text-slate-500">Class {student.class}{student.section ? `-${student.section}` : ''}</span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-slate-700">
+                    {student.dob || '-'}
                   </td>
                   <td className="px-6 py-4 text-slate-600 font-medium">{student.school || '-'}</td>
                   <td className="px-6 py-4">

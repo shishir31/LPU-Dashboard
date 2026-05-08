@@ -5,7 +5,7 @@ const Student = require('../models/Student');
 // Auto-fetches full student data from master DB using Registration ID
 exports.registerPlayer = async (req, res) => {
   try {
-    const { registrationId, name, school } = req.body;
+    const { registrationId, name, school, dob } = req.body;
 
     if (!registrationId || !name) {
       return res.status(400).json({
@@ -33,6 +33,7 @@ exports.registerPlayer = async (req, res) => {
       class: studentData?.class || '',
       section: studentData?.section || '',
       gender: studentData?.gender || '',
+      dob: studentData?.dob || dob || '',
       eventCategory: studentData?.eventCategory || 'Singles',
       status: studentData ? 'VERIFIED' : 'PENDING',
     });
