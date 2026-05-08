@@ -4,7 +4,7 @@ import StudentTable from '../components/StudentTable'
 import { Users, UserCheck, UserX, FileText } from 'lucide-react'
 import { studentService } from '../services/api'
 import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -85,7 +85,7 @@ const Dashboard = () => {
           tableRows.push(studentData);
         });
 
-        doc.autoTable({
+        autoTable(doc, {
           head: [tableColumn],
           body: tableRows,
           startY: 40,
