@@ -75,11 +75,15 @@ exports.uploadPDF = async (req, res) => {
     for (const reg of registrations) {
       const foundInPDF = extractedRegIds.includes(reg.registrationId);
       if (foundInPDF) {
-        reg.status = 'VERIFIED';
-        verifiedCount++;
+        if (reg.status !== 'VERIFIED') {
+          reg.status = 'VERIFIED';
+          verifiedCount++;
+        }
       } else {
-        reg.status = 'MATCH NOT FOUND';
-        notFoundCount++;
+        if (reg.status === 'PENDING') {
+          reg.status = 'MATCH NOT FOUND';
+          notFoundCount++;
+        }
       }
       await reg.save();
     }
