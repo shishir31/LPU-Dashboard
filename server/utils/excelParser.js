@@ -1,142 +1,152 @@
 const xlsx = require('xlsx');
 
 function extractStudentsFromExcel(buffer) {
-  // Read the workbook from buffer
   const workbook = xlsx.read(buffer, { type: 'buffer' });
-  
-  // Use the first sheet
-  const firstSheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[firstSheetName];
-  
-  // Convert sheet to an array of arrays (each array is a row)
-  const rows = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-
-  let schoolName = '';
-  let pdfCategory = '';
-  let gender = '';
-
   const students = [];
   const seen = new Set();
 
-  let headerRowIndex = -1;
-  let colMap = {};
+  // Iterate over all sheets in the workbook
+  for (const sheetName of workbook.SheetNames) {
+    const worksheet = workbook.Sheets[sheetName];
+    const rows = xlsx.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
-  // Find School, Category and the Table Header
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
+    if (rows.length === 0) continue;
+
+    let sheetCategory = '';
+    let sheetGender = '';
     
-    // Convert row to a single concatenated string for easy searching
-    const rowStr = row.join(' ').replace(/\s+/g, ' ').trim();
-
-    // Look for School
-    const schoolMatch = rowStr.match(/SCHOOL:\s*(.+?)(?:\s|$|u\d{2})/i);
-    if (schoolMatch && !schoolName) {
-      schoolName = schoolMatch[1].trim();
+    // Try to get category from sheet name first
+    const catMatch = sheetName.match(/(U\d{2}-(?:Boys|Girls))/i);
+    if (catMatch) {
+      sheetCategory = catMatch[1];
+    } else {
+      // Look in the first few rows (e.g. A1)
+      for (let i = 0; i < Math.min(5, rows.length); i++) {
+        const rowStr = rows[i].join(' ').replace(/\s+/g, ' ').trim();
+        const rMatch = rowStr.match(/(U\d{2}-(?:Boys|Girls))/i);
+        if (rMatch) {
+          sheetCategory = rMatch[1];
+          break;
+        }
+      }
     }
 
-    // Look for Category
-    const categoryMatch = rowStr.match(/CATEGORY:\s*(U\d{2}-(?:Boys|Girls))/i);
-    if (categoryMatch && !pdfCategory) {
-      pdfCategory = categoryMatch[1].trim();
+    if (sheetCategory.toLowerCase().includes('boys')) sheetGender = 'Male';
+    else if (sheetCategory.toLowerCase().includes('girls')) sheetGender = 'Female';
+
+    let headerRowIndex = -1;
+    let colMap = {
+      singlesCols: [],
+      doublesCols: []
+    };
+
+    // Find the Table Header
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const rowStr = row.join(' ').toLowerCase();
+
+      if (headerRowIndex === -1 && rowStr.includes('registration') && rowStr.includes('name')) {
+        headerRowIndex = i;
+        
+        // Map columns
+        for (let j = 0; j < row.length; j++) {
+          const cell = String(row[j]).toLowerCase();
+          if (cell.includes('registration') || cell.includes('uid')) colMap.registrationId = j;
+          else if (cell.includes('father')) colMap.fatherName = j;
+          else if (cell.includes('player name') || (cell.includes('name') && !cell.includes('school'))) colMap.name = j;
+          else if (cell.includes('school name')) colMap.schoolName = j;
+          else if (cell.includes('dob') || cell.includes('birth')) colMap.dob = j;
+          else if (cell.includes('class')) colMap.class = j;
+          else if (cell.includes('singles')) colMap.singlesCols.push(j);
+          else if (cell.includes('doubles')) colMap.doublesCols.push(j);
+        }
+        break; // found header
+      }
     }
 
-    // Check if this is the header row
-    if (headerRowIndex === -1 && rowStr.toLowerCase().includes('registration') && rowStr.toLowerCase().includes('name')) {
-      headerRowIndex = i;
+    if (headerRowIndex === -1) {
+      console.warn(`Could not find data headers in sheet: ${sheetName}`);
+      continue;
+    }
+
+    // Parse Data Rows for this sheet
+    for (let i = headerRowIndex + 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length === 0 || !row.some(cell => String(cell).trim() !== '')) continue;
+
+      let registrationId = '';
+      if (colMap.registrationId !== undefined) registrationId = String(row[colMap.registrationId]).trim();
+
+      if (!registrationId || !registrationId.includes('CISCE')) continue;
+      if (registrationId.match(/^\d{1,3}C/)) continue; // Coach ID
+
+      const regMatch = registrationId.match(/(\d{2}CISCE\d{8})/);
+      if (regMatch) registrationId = regMatch[1];
+
+      let name = colMap.name !== undefined ? String(row[colMap.name]).trim() : 'Unknown';
       
-      // Map columns
-      for (let j = 0; j < row.length; j++) {
-        const cell = String(row[j]).toLowerCase();
-        if (cell.includes('registration') || cell.includes('uid')) colMap.registrationId = j;
-        else if (cell.includes('father')) colMap.fatherName = j;
-        else if (cell.includes('name') && !cell.includes('father')) colMap.name = j;
-        else if (cell.includes('dob') || cell.includes('birth')) colMap.dob = j;
-        else if (cell.includes('class')) colMap.class = j;
-        else if (cell.includes('event') || cell.includes('variant')) colMap.eventCategory = j;
-        else if (cell.includes('category')) colMap.category = j; // Optional, usually category is in header
+      // Clean up name if it has (UP...) suffix
+      const nameMatch = name.match(/(.+?)\s*\([A-Z0-9]+\)/i);
+      if (nameMatch) name = nameMatch[1];
+
+      let schoolName = colMap.schoolName !== undefined ? String(row[colMap.schoolName]).trim() : 'Unknown';
+      let fatherName = colMap.fatherName !== undefined ? String(row[colMap.fatherName]).trim() : '';
+      let dob = colMap.dob !== undefined ? String(row[colMap.dob]).trim() : '';
+      let className = colMap.class !== undefined ? String(row[colMap.class]).trim() : '';
+      
+      let eventCategory = 'Singles'; // Default
+      
+      // Check doubles columns first, then singles
+      for (const idx of colMap.doublesCols) {
+        const val = String(row[idx]).trim();
+        if (val && val !== '0' && val !== 'false') {
+          eventCategory = 'Doubles';
+          break;
+        }
+      }
+      
+      if (eventCategory !== 'Doubles') {
+        for (const idx of colMap.singlesCols) {
+          const val = String(row[idx]).trim();
+          if (val && val !== '0' && val !== 'false') {
+            eventCategory = 'Singles';
+            break;
+          }
+        }
+      }
+
+      if (typeof row[colMap.dob] === 'number') {
+        const date = xlsx.SSF.parse_date_code(row[colMap.dob]);
+        if (date) dob = `${String(date.d).padStart(2, '0')}/${String(date.m).padStart(2, '0')}/${date.y}`;
+      }
+
+      const key = registrationId;
+      if (!seen.has(key)) {
+        seen.add(key);
+        students.push({
+          registrationId,
+          name: toTitleCase(name),
+          fatherName: toTitleCase(fatherName),
+          school: schoolName,
+          class: className,
+          section: '',
+          gender: sheetGender,
+          category: sheetCategory || 'Unknown Category',
+          dob,
+          eventCategory,
+        });
       }
     }
   }
 
-  // If we couldn't find the school or category via regex on the rows, fallback
-  if (!schoolName) schoolName = 'Unknown School';
-  if (pdfCategory) {
-    if (pdfCategory.toLowerCase().includes('boys')) gender = 'Male';
-    else if (pdfCategory.toLowerCase().includes('girls')) gender = 'Female';
-  } else {
-    pdfCategory = 'Unknown Category';
+  console.log('✅ Extracted', students.length, 'unique students from Excel across', workbook.SheetNames.length, 'sheets');
+
+  if (students.length === 0) {
+     throw new Error('Could not extract any students from the Excel file. Please ensure it follows the standard CISCE report format.');
   }
-
-  console.log('📊 Excel School:', schoolName, '| Category:', pdfCategory, '| Gender:', gender);
-
-  if (headerRowIndex === -1) {
-    throw new Error('Could not find data headers (Registration, Name) in the Excel file.');
-  }
-
-  // Parse Data Rows
-  for (let i = headerRowIndex + 1; i < rows.length; i++) {
-    const row = rows[i];
-    
-    // Skip empty rows
-    if (row.length === 0 || !row.some(cell => String(cell).trim() !== '')) continue;
-
-    let registrationId = '';
-    if (colMap.registrationId !== undefined) registrationId = String(row[colMap.registrationId]).trim();
-
-    // Skip rows without a registration ID (like coach/manager)
-    if (!registrationId || !registrationId.includes('CISCE')) continue;
-    if (registrationId.match(/^\d{1,3}C/)) continue; // Coach ID
-
-    // Remove any prefixed serial numbers like "1 24CISCE..." or "126CISCE..." 
-    // This handles if the S.No was concatenated with the Reg ID
-    const regMatch = registrationId.match(/(\d{2}CISCE\d{8})/);
-    if (regMatch) {
-      registrationId = regMatch[1];
-    }
-
-    let name = colMap.name !== undefined ? String(row[colMap.name]).trim() : 'Unknown';
-    let fatherName = colMap.fatherName !== undefined ? String(row[colMap.fatherName]).trim() : '';
-    let dob = colMap.dob !== undefined ? String(row[colMap.dob]).trim() : '';
-    let className = colMap.class !== undefined ? String(row[colMap.class]).trim() : '';
-    let eventCategory = colMap.eventCategory !== undefined ? String(row[colMap.eventCategory]).trim() : 'Singles';
-    let category = colMap.category !== undefined && String(row[colMap.category]).trim() ? String(row[colMap.category]).trim() : pdfCategory;
-
-    // Clean up event category
-    if (/Badminton\s*Doubles/i.test(eventCategory)) eventCategory = 'Doubles';
-    else if (/Mixed\s*Doubles/i.test(eventCategory)) eventCategory = 'Mixed Doubles';
-    else if (/Badminton\s*Singles/i.test(eventCategory)) eventCategory = 'Singles';
-    else if (!eventCategory) eventCategory = 'Singles';
-
-    // Format DOB if it's an Excel serial number
-    if (typeof row[colMap.dob] === 'number') {
-      const date = xlsx.SSF.parse_date_code(row[colMap.dob]);
-      if (date) {
-        dob = `${String(date.d).padStart(2, '0')}/${String(date.m).padStart(2, '0')}/${date.y}`;
-      }
-    }
-
-    const key = registrationId;
-    if (!seen.has(key)) {
-      seen.add(key);
-      students.push({
-        registrationId,
-        name: toTitleCase(name),
-        fatherName: toTitleCase(fatherName),
-        school: schoolName,
-        class: className,
-        section: '',
-        gender,
-        category,
-        dob,
-        eventCategory,
-      });
-    }
-  }
-
-  console.log('✅ Extracted', students.length, 'unique students from Excel');
 
   return {
-    totalPages: 1, // Excel is considered 1 page for our context
+    totalPages: workbook.SheetNames.length,
     students,
   };
 }
