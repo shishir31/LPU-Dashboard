@@ -89,7 +89,11 @@ const Upload = () => {
         fetchUploadHistory() // refresh history
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Upload failed. Please try again.')
+      console.error('Upload error full:', err)
+      const msg = err.response?.data?.message 
+        || err.message 
+        || 'Upload failed. Please try again.'
+      setError(msg)
     } finally {
       setUploading(false)
     }

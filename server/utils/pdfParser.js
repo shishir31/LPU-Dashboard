@@ -1,4 +1,8 @@
-const pdfParse = require('pdf-parse');
+// Use the internal lib directly — pdf-parse's main index.js tries to load a
+// test PDF file from disk on require(), which crashes on Render and other cloud
+// environments that don't have that test file available.
+const pdfParse = require('pdf-parse/lib/pdf-parse.js');
+
 
 /**
  * Parse a CISCE Sports Management System PDF and extract student data.
