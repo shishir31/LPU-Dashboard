@@ -6,10 +6,10 @@ const { extractStudentsFromPDF } = require('../utils/pdfParser');
 // POST /api/upload-pdf — Upload a PDF, extract students, and save them to the database
 exports.uploadPDF = async (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.file || !req.file.buffer) {
       return res.status(400).json({
         success: false,
-        message: 'No PDF file uploaded',
+        message: 'No PDF file received. Please select a PDF file and try again.',
       });
     }
 

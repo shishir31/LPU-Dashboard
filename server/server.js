@@ -15,18 +15,11 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const app = express();
 
 // --------------- Middleware ---------------
+// Allow all origins — this is an internal admin dashboard
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests from FRONTEND_URL or any localhost port
-    const allowedOrigin = process.env.FRONTEND_URL;
-    
-    if (!origin || origin.match(/^http:\/\/localhost:\d+$/) || (allowedOrigin && origin === allowedOrigin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
