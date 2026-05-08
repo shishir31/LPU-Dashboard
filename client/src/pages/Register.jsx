@@ -6,7 +6,7 @@ const Register = () => {
     <div className="space-y-8 page-transition max-w-4xl mx-auto">
       <header className="flex items-end justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800">Student Registration</h2>
+          <h2 className="text-3xl font-bold text-slate-800">Student Reeeegistration</h2>
           <p className="text-slate-500 mt-1">Register players for the CISCE Zonal Badminton Tournament.</p>
         </div>
       </header>
