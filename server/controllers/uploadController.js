@@ -2,6 +2,7 @@ const Upload = require('../models/Upload');
 const Registration = require('../models/Registration');
 const Student = require('../models/Student');
 const { extractStudentsFromPDF } = require('../utils/pdfParser');
+const { extractStudentsFromExcel } = require('../utils/excelParser');
 
 // POST /api/upload-pdf — Upload a PDF, extract students, and save them to the database
 exports.uploadPDF = async (req, res) => {
@@ -9,7 +10,7 @@ exports.uploadPDF = async (req, res) => {
     if (!req.file || !req.file.buffer) {
       return res.status(400).json({
         success: false,
-        message: 'No PDF file received. Please select a PDF file and try again.',
+        message: 'No file received. Please select a PDF or Excel file and try again.',
       });
     }
 
@@ -20,17 +21,23 @@ exports.uploadPDF = async (req, res) => {
       status: 'PROCESSING',
     });
 
-    // Extract students from the PDF buffer (in-memory, no disk write needed)
+    // Extract students from the file buffer (in-memory, no disk write needed)
     let extracted;
     try {
-      extracted = await extractStudentsFromPDF(req.file.buffer);
+      if (req.file.originalname.match(/\.(xlsx|xls)$/i) || 
+          req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+          req.file.mimetype === 'application/vnd.ms-excel') {
+        extracted = await extractStudentsFromExcel(req.file.buffer);
+      } else {
+        extracted = await extractStudentsFromPDF(req.file.buffer);
+      }
     } catch (parseError) {
-      console.error('PDF parse error:', parseError);
+      console.error('File parse error:', parseError);
       uploadRecord.status = 'FAILED';
       await uploadRecord.save();
       return res.status(422).json({
         success: false,
-        message: 'Failed to parse PDF. Make sure the PDF contains selectable text.',
+        message: 'Failed to parse file. Make sure it is a valid format.',
       });
     }
 

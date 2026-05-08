@@ -5,10 +5,15 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 
 const fileFilter = (_req, file, cb) => {
-  if (file.mimetype === 'application/pdf') {
+  if (
+    file.mimetype === 'application/pdf' ||
+    file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    file.mimetype === 'application/vnd.ms-excel' ||
+    file.originalname.match(/\.(pdf|xlsx|xls)$/i)
+  ) {
     cb(null, true);
   } else {
-    cb(new Error('Only PDF files are allowed'), false);
+    cb(new Error('Only PDF and Excel files are allowed'), false);
   }
 };
 

@@ -57,7 +57,14 @@ const Upload = () => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
-    if (e.dataTransfer.files?.[0]?.type === 'application/pdf') {
+    const fileType = e.dataTransfer.files?.[0]?.type
+    if (
+      fileType === 'application/pdf' ||
+      fileType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      fileType === 'application/vnd.ms-excel' ||
+      e.dataTransfer.files?.[0]?.name?.endsWith('.xlsx') ||
+      e.dataTransfer.files?.[0]?.name?.endsWith('.xls')
+    ) {
       setFile(e.dataTransfer.files[0])
       setResult(null)
       setError(null)
@@ -128,7 +135,7 @@ const Upload = () => {
           <input
             id="pdf-input"
             type="file"
-            accept=".pdf"
+            accept=".pdf,.xlsx,.xls"
             onChange={handleFileChange}
             className="hidden"
           />
@@ -139,10 +146,10 @@ const Upload = () => {
             </div>
             <div>
               <p className="text-lg font-bold text-slate-700">
-                {file ? file.name : 'Drop your PDF here or click to browse'}
+                {file ? file.name : 'Drop your PDF or Excel file here or click to browse'}
               </p>
               <p className="text-sm text-slate-400 mt-1">
-                {file ? `${(file.size / 1024).toFixed(1)} KB — Ready to upload` : 'Supports PDF files with student Registration IDs'}
+                {file ? `${(file.size / 1024).toFixed(1)} KB — Ready to upload` : 'Supports PDF and Excel (.xlsx, .xls) files'}
               </p>
             </div>
           </div>
