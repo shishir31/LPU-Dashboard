@@ -111,7 +111,10 @@ exports.uploadPDF = async (req, res) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    res.status(500).json({ success: false, message: 'Server error during upload' });
+    res.status(500).json({
+      success: false,
+      message: `Server error during upload: ${error.message}`,
+    });
   }
 };
 

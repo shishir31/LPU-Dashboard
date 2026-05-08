@@ -8,7 +8,7 @@ const uploadSchema = new mongoose.Schema(
     },
     filepath: {
       type: String,
-      required: true,
+      default: '',
     },
     status: {
       type: String,
