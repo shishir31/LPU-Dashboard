@@ -4,8 +4,8 @@ import {
   UserPlus, 
   UserCheck, 
   FileUp, 
-  Trophy,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -16,19 +16,30 @@ const navItems = [
   { icon: FileUp, label: 'Upload Documents', path: '/upload' },
 ]
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation()
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col z-50">
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-12 h-12 flex items-center justify-center shrink-0">
-          <img src="https://i.postimg.cc/156VRbDP/Whats-App-Image-2026-05-07-at-22-49-08.jpg" alt="LPC Logo" className="w-full h-full object-contain rounded-full" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/48?text=LPC"; }} />
+    <aside className={clsx(
+      "fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col z-50 transition-transform duration-300 ease-in-out lg:translate-x-0",
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
+      <div className="p-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 flex items-center justify-center shrink-0">
+            <img src="https://i.postimg.cc/156VRbDP/Whats-App-Image-2026-05-07-at-22-49-08.jpg" alt="LPC Logo" className="w-full h-full object-contain rounded-full" onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/48?text=LPC"; }} />
+          </div>
+          <h1 className="font-bold text-slate-800 text-lg leading-tight">
+            LPC <br />
+            <span className="text-primary-600">Registration</span>
+          </h1>
         </div>
-        <h1 className="font-bold text-slate-800 text-lg leading-tight">
-          LPC <br />
-          <span className="text-primary-600">Registration</span>
-        </h1>
+        <button 
+          onClick={onClose}
+          className="p-2 lg:hidden text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-2">
@@ -36,6 +47,7 @@ const Sidebar = () => {
           <Link
             key={item.path}
             to={item.path}
+            onClick={() => onClose && onClose()}
             className={clsx(
               'sidebar-link',
               location.pathname === item.path && 'active'

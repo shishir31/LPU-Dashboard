@@ -20,7 +20,8 @@ const StudentTable = ({ students, onDelete }) => {
       </div>
 
       <div className="glass-card rounded-2xl overflow-hidden">
-        <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-slate-50/50 border-b border-slate-100">
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reg. ID</th>
@@ -96,6 +97,7 @@ const StudentTable = ({ students, onDelete }) => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   )

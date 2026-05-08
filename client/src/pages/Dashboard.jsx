@@ -3,6 +3,8 @@ import StatCard from '../components/StatCard'
 import StudentTable from '../components/StudentTable'
 import { Users, UserCheck, UserX, FileText } from 'lucide-react'
 import { studentService } from '../services/api'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -56,6 +58,47 @@ const Dashboard = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const res = await studentService.getRegistrations();
+      if (res.success) {
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text("LPC Badminton Registration Report", 14, 22);
+        
+        doc.setFontSize(11);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+        
+        const tableColumn = ["Reg ID", "Name", "Class", "School", "Category", "Status"];
+        const tableRows = [];
+
+        res.data.forEach(student => {
+          const studentData = [
+            student.registrationId,
+            student.name,
+            `${student.class || '-'}${student.section ? `-${student.section}` : ''}`,
+            student.school || '-',
+            student.eventCategory || '-',
+            student.status
+          ];
+          tableRows.push(studentData);
+        });
+
+        doc.autoTable({
+          head: [tableColumn],
+          body: tableRows,
+          startY: 40,
+        });
+
+        doc.save(`LPC_Registrations_${new Date().toISOString().split('T')[0]}.pdf`);
+      }
+    } catch (error) {
+      console.error("Failed to generate PDF", error);
+      alert("Failed to download PDF report. Please try again.");
+    }
+  };
+
   return (
     <div className="space-y-8 page-transition">
       <header>
@@ -71,11 +114,18 @@ const Dashboard = () => {
       </div>
 
       <section className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             Recent Registrations
             <span className="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs rounded-full">LIVE</span>
           </h3>
+          <button 
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-700 transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            Download Report (PDF)
+          </button>
         </div>
         
         <StudentTable students={students} onDelete={handleDeleteRegistration} />
