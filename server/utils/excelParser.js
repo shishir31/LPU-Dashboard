@@ -72,16 +72,21 @@ function extractStudentsFromExcel(buffer) {
     // Parse Data Rows for this sheet
     for (let i = headerRowIndex + 1; i < rows.length; i++) {
       const row = rows[i];
-      if (row.length === 0 || !row.some(cell => String(cell).trim() !== '')) continue;
+      if (row.length === 0 || !row.some(cell => String(cell).trim() !== '')) {
+        continue;
+      }
 
       let registrationId = '';
       if (colMap.registrationId !== undefined) registrationId = String(row[colMap.registrationId]).trim();
 
-      if (!registrationId || !registrationId.includes('CISCE')) continue;
-      if (registrationId.match(/^\d{1,3}C/)) continue; // Coach ID
+      if (!registrationId || !registrationId.includes('CISCE')) {
+        continue;
+      }
 
+      // If the RegID happens to have a prefixed serial number due to bad formatting, clean it
       const regMatch = registrationId.match(/(\d{2}CISCE\d{8})/);
       if (regMatch) registrationId = regMatch[1];
+
 
       let name = colMap.name !== undefined ? String(row[colMap.name]).trim() : 'Unknown';
       
