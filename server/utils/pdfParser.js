@@ -1,5 +1,4 @@
 const pdfParse = require('pdf-parse');
-const fs = require('fs');
 
 /**
  * Parse a CISCE Sports Management System PDF and extract student data.
@@ -9,8 +8,9 @@ const fs = require('fs');
  *
  * Format: SerialNo + RegistrationID + PlayerName + FatherName + Category + DOB + Age + Phone + Class + Variant
  */
-async function extractStudentsFromPDF(filepath) {
-  const dataBuffer = fs.readFileSync(filepath);
+async function extractStudentsFromPDF(buffer) {
+  // Accept either a Buffer (memory storage) or a filepath string (legacy)
+  const dataBuffer = Buffer.isBuffer(buffer) ? buffer : require('fs').readFileSync(buffer);
   const pdfData = await pdfParse(dataBuffer);
 
   const text = pdfData.text;

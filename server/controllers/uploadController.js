@@ -16,14 +16,14 @@ exports.uploadPDF = async (req, res) => {
     // Create upload record
     const uploadRecord = await Upload.create({
       filename: req.file.originalname,
-      filepath: req.file.path,
+      filepath: '', // memory storage — no disk path
       status: 'PROCESSING',
     });
 
-    // Extract students from the PDF
+    // Extract students from the PDF buffer (in-memory, no disk write needed)
     let extracted;
     try {
-      extracted = await extractStudentsFromPDF(req.file.path);
+      extracted = await extractStudentsFromPDF(req.file.buffer);
     } catch (parseError) {
       console.error('PDF parse error:', parseError);
       uploadRecord.status = 'FAILED';
@@ -145,24 +145,15 @@ exports.getUploads = async (_req, res) => {
   }
 };
 
-// DELETE /api/uploads/:id — Delete an upload record and its file
+// DELETE /api/uploads/:id — Delete an upload record
 exports.deleteUpload = async (req, res) => {
   try {
-    const fs = require('fs');
-    const path = require('path');
-    
     const upload = await Upload.findById(req.params.id);
     if (!upload) {
       return res.status(404).json({ success: false, message: 'Upload not found' });
     }
 
-    // Delete file from filesystem if it exists
-    if (upload.filepath && fs.existsSync(upload.filepath)) {
-      fs.unlinkSync(upload.filepath);
-    }
-
-    // Optionally delete students extracted from this PDF
-    // (We'll delete them to keep the database clean, assuming each PDF is a standalone tournament list)
+    // Delete students extracted from this PDF to keep the database clean
     if (upload.extractedStudents && upload.extractedStudents.length > 0) {
       const regIds = upload.extractedStudents.map(s => s.registrationId).filter(Boolean);
       await Student.deleteMany({ registrationId: { $in: regIds } });
