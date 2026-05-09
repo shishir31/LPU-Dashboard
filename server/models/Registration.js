@@ -36,7 +36,7 @@ const registrationSchema = new mongoose.Schema(
     },
     eventCategory: {
       type: String,
-      enum: ['Singles', 'Doubles', 'Mixed Doubles'],
+      enum: ['Singles', 'Doubles', 'Mixed Doubles', 'Singles & Doubles'],
     },
     status: {
       type: String,
