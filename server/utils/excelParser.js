@@ -99,26 +99,27 @@ function extractStudentsFromExcel(buffer) {
       let dob = colMap.dob !== undefined ? String(row[colMap.dob]).trim() : '';
       let className = colMap.class !== undefined ? String(row[colMap.class]).trim() : '';
       
-      let eventCategory = 'Singles'; // Default
+      let categories = [];
       
-      // Check doubles columns first, then singles
-      for (const idx of colMap.doublesCols) {
+      // Check singles columns
+      for (const idx of colMap.singlesCols) {
         const val = String(row[idx]).trim();
         if (val && val !== '0' && val !== 'false') {
-          eventCategory = 'Doubles';
+          categories.push('Singles');
           break;
         }
       }
-      
-      if (eventCategory !== 'Doubles') {
-        for (const idx of colMap.singlesCols) {
-          const val = String(row[idx]).trim();
-          if (val && val !== '0' && val !== 'false') {
-            eventCategory = 'Singles';
-            break;
-          }
+
+      // Check doubles columns
+      for (const idx of colMap.doublesCols) {
+        const val = String(row[idx]).trim();
+        if (val && val !== '0' && val !== 'false') {
+          categories.push('Doubles');
+          break;
         }
       }
+
+      let eventCategory = categories.length > 0 ? categories.join(' & ') : 'Singles'; // Default
 
       if (typeof row[colMap.dob] === 'number') {
         const date = xlsx.SSF.parse_date_code(row[colMap.dob]);

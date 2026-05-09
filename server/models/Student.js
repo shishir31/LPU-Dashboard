@@ -47,7 +47,7 @@ const studentSchema = new mongoose.Schema(
     },
     eventCategory: {
       type: String,
-      enum: ['Singles', 'Doubles', 'Mixed Doubles'],
+      enum: ['Singles', 'Doubles', 'Mixed Doubles', 'Singles & Doubles'],
     },
   },
   { timestamps: true }
