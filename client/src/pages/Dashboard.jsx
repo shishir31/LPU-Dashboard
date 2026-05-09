@@ -6,19 +6,7 @@ import { studentService } from '../services/api'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
-// Calculate age from a DOB string in dd/mm/yyyy format
-const calculateAge = (dob) => {
-  if (!dob) return '-'
-  const parts = dob.split('/')
-  if (parts.length !== 3) return '-'
-  const birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`)
-  if (isNaN(birthDate)) return '-'
-  const today = new Date()
-  let age = today.getFullYear() - birthDate.getFullYear()
-  const m = today.getMonth() - birthDate.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--
-  return String(age)
-}
+
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -54,6 +42,7 @@ const Dashboard = () => {
     section: r.section,
     school: r.school,
     eventCategory: r.eventCategory,
+    category: r.category,
     status: r.status,
     dob: r.dob,
   }))
@@ -85,14 +74,14 @@ const Dashboard = () => {
         doc.setFontSize(11);
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
         
-        const tableColumn = ["Reg ID", "Name", "Age", "Class", "School", "Category", "Status"];
+        const tableColumn = ["Reg ID", "Name", "Age Category", "Class", "School", "Event", "Status"];
         const tableRows = [];
 
         res.data.forEach(student => {
           const studentData = [
             student.registrationId,
             student.name,
-            student.dob ? `${calculateAge(student.dob)} yrs` : '-',
+            student.category || '-',
             `${student.class || '-'}${student.section ? `-${student.section}` : ''}`,
             student.school || '-',
             student.eventCategory || '-',

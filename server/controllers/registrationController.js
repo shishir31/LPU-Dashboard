@@ -34,6 +34,7 @@ exports.registerPlayer = async (req, res) => {
       section: studentData?.section || '',
       gender: studentData?.gender || '',
       dob: studentData?.dob || dob || '',
+      category: studentData?.category || '',
       eventCategory: studentData?.eventCategory || 'Singles',
       status: studentData ? 'VERIFIED' : 'PENDING',
     });

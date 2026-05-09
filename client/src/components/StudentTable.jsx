@@ -1,19 +1,7 @@
 import { motion } from 'framer-motion'
 import { CheckCircle2, XCircle, MoreVertical, Search, Filter, Clock, Trash2 } from 'lucide-react'
 
-// Calculate age from a DOB string in dd/mm/yyyy format
-const calculateAge = (dob) => {
-  if (!dob) return '-'
-  const parts = dob.split('/')
-  if (parts.length !== 3) return '-'
-  const birthDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`)
-  if (isNaN(birthDate)) return '-'
-  const today = new Date()
-  let age = today.getFullYear() - birthDate.getFullYear()
-  const m = today.getMonth() - birthDate.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--
-  return age
-}
+
 
 const StudentTable = ({ students, onDelete }) => {
   return (
@@ -40,7 +28,7 @@ const StudentTable = ({ students, onDelete }) => {
             <tr className="bg-slate-50/50 border-b border-slate-100">
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reg. ID</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Student Name</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Age</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Age Category</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">School</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Category</th>
               <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
@@ -76,7 +64,7 @@ const StudentTable = ({ students, onDelete }) => {
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold">
-                      {calculateAge(student.dob)} yrs
+                      {student.category || '-'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-600 font-medium">{student.school || '-'}</td>

@@ -17,6 +17,11 @@ const registrationSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    category: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     class: {
       type: String,
       trim: true,
