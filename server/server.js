@@ -61,8 +61,8 @@ async function startServer() {
     await mongoose.connect(mongoUri);
     console.log('✅ In-memory MongoDB started at', mongoUri);
 
-    // Auto-seed sample data in development mode
-    await seedDevelopmentData();
+    // Auto-seed sample data in development mode disabled
+    // await seedDevelopmentData();
   }
 
   const server = app.listen(PORT, () => {
